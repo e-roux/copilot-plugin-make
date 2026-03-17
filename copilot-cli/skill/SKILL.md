@@ -1,6 +1,6 @@
 ---
 name: makefile
-description: "Makefile-centric development: enforces .SILENT:, .ONESHELL:, no @ prefix, mandatory qa target, and make-only workflow."
+description: "You MUST use and read this file when you deal with Makefile"
 ---
 
 # Makefile Skill
