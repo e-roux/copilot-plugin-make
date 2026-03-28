@@ -84,6 +84,9 @@ pass "No '@' prefix in recipes"
 
 # ═════════════════════════════════════════════════════════════════════════════
 # CHECK 3 — help target: structure and format
+# Two valid approaches:
+#   A) ANSI Shadow art + printf entries (template style, ≤15 targets)
+#   B) Inline ## annotations + grep pipeline (self-documenting, >15 targets)
 # ═════════════════════════════════════════════════════════════════════════════
 section "3. help target format"
 
@@ -93,46 +96,54 @@ if ! grep -qP '^help\s*:' "$MAKEFILE"; then
 fi
 pass "help: target exists"
 
-# 3b. ASCII art block (figlet ANSI Shadow) — detect the Unicode box-drawing
-#     characters that ANSI Shadow produces (║ ╗ ╝ ╚ ╔ ═ or similar)
-ART_CHARS='[║╗╝╚╔═╠╣╦╩╬█▀▄]'
-if grep -qP "$ART_CHARS" "$MAKEFILE"; then
-    pass "ASCII art block detected"
-else
-    fail "No ANSI Shadow ASCII art found in help target (expected box-drawing chars: ║╗╝╚╔═ …)"
+# Detect which approach is used
+USES_GREP_HELP=0
+if grep -qP 'grep.*##.*MAKEFILE_LIST' "$MAKEFILE"; then
+    USES_GREP_HELP=1
 fi
 
-# 3c. "Usage:" line
-if grep -qP 'Usage:' "$MAKEFILE"; then
-    pass "Usage: line present"
+if [[ "$USES_GREP_HELP" -eq 1 ]]; then
+    # ── Approach B: inline ## annotations ──────────────────────────────────
+    ANNOTATED=$(grep -cP '^[a-zA-Z_.]+:.*##' "$MAKEFILE" 2>/dev/null || true)
+    ANNOTATED="${ANNOTATED//[^0-9]/}"
+    ANNOTATED="${ANNOTATED:-0}"
+    if [[ "$ANNOTATED" -ge 5 ]]; then
+        pass "Inline ## help annotations detected ($ANNOTATED targets)"
+    else
+        fail "Too few ## annotations ($ANNOTATED). Annotate public targets: 'target: deps  ## description'"
+    fi
 else
-    fail "No 'Usage:' line found in help target"
-fi
+    # ── Approach A: ANSI Shadow art + printf entries ──────────────────────
+    ART_CHARS='[║╗╝╚╔═╠╣╦╩╬█▀▄]'
+    if grep -qP "$ART_CHARS" "$MAKEFILE"; then
+        pass "ASCII art block detected"
+    else
+        fail "No ANSI Shadow ASCII art found in help target (expected box-drawing chars: ║╗╝╚╔═ …)"
+    fi
 
-# 3d. At least one colored section header.
-#     Template uses literal: printf "\033[1;35mSetup:\033[0m\n"
-#     We match the fixed string "1;35m" (color code for bold magenta) followed
-#     by a capitalised section name and colon — using fixed-string grep since
-#     the backslash in the file is a literal character, not an escape.
-SECTION_COUNT=$(grep -cF '1;35m' "$MAKEFILE" 2>/dev/null || true)
-SECTION_COUNT="${SECTION_COUNT//[^0-9]/}"
-SECTION_COUNT="${SECTION_COUNT:-0}"
-if [[ "$SECTION_COUNT" -ge 1 ]]; then
-    pass "Colored section headers present ($SECTION_COUNT)"
-else
-    fail "No colored section headers found in help target (expected printf lines with \\033[1;35m<Name>:\\033[0m)"
-fi
+    if grep -qP 'Usage:' "$MAKEFILE"; then
+        pass "Usage: line present"
+    else
+        fail "No 'Usage:' line found in help target"
+    fi
 
-# 3e. Vertical entry format: each entry on its own line matching
-#       <tab>printf "  <target>  - <description>\n"
-#     At least two such lines must exist.
-ENTRY_LINES=$(grep -cP '^\t\s*printf\s+"[[:space:]]+\S+[[:space:]]+-[[:space:]]+\S' "$MAKEFILE" 2>/dev/null || true)
-ENTRY_LINES="${ENTRY_LINES//[^0-9]/}"
-ENTRY_LINES="${ENTRY_LINES:-0}"
-if [[ "$ENTRY_LINES" -ge 2 ]]; then
-    pass "Vertical entry format detected ($ENTRY_LINES entries)"
-else
-    fail "Help entries must be in vertical format: '  target     - description' (one per printf line, at least 2 found $ENTRY_LINES)"
+    SECTION_COUNT=$(grep -cF '1;35m' "$MAKEFILE" 2>/dev/null || true)
+    SECTION_COUNT="${SECTION_COUNT//[^0-9]/}"
+    SECTION_COUNT="${SECTION_COUNT:-0}"
+    if [[ "$SECTION_COUNT" -ge 1 ]]; then
+        pass "Colored section headers present ($SECTION_COUNT)"
+    else
+        fail "No colored section headers found in help target (expected printf lines with \\033[1;35m<Name>:\\033[0m)"
+    fi
+
+    ENTRY_LINES=$(grep -cP '^\t\s*printf\s+"[[:space:]]+\S+[[:space:]]+-[[:space:]]+\S' "$MAKEFILE" 2>/dev/null || true)
+    ENTRY_LINES="${ENTRY_LINES//[^0-9]/}"
+    ENTRY_LINES="${ENTRY_LINES:-0}"
+    if [[ "$ENTRY_LINES" -ge 2 ]]; then
+        pass "Vertical entry format detected ($ENTRY_LINES entries)"
+    else
+        fail "Help entries must be in vertical format: '  target     - description' (one per printf line, at least 2 found $ENTRY_LINES)"
+    fi
 fi
 
 # ═════════════════════════════════════════════════════════════════════════════

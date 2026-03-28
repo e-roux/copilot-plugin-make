@@ -129,12 +129,41 @@ Development Progress:
 
 ## Help Design
 
-Keep `help` output on **one terminal screen** (≤24 lines):
+Two valid approaches — choose based on project size:
+
+### Approach A: ANSI Shadow (≤15 targets)
+
+Best for small projects. Centralised help with figlet header.
+
+Keep output on **one terminal screen** (≤24 lines):
 - **5 sections** max (Setup, Dev, Test, Docs, Info)
 - **Max 10 character** section titles
 - **3–4 items per section**
 - **ASCII art header** via figlet ANSI Shadow font
 - **Colors**: Magenta (`\033[1;35m`) for sections, Cyan (`\033[36m`) for header
+
+### Approach B: Inline `##` annotations (>15 targets) — PREFERRED
+
+Best for large Makefiles. Self-documenting — help stays in sync automatically.
+
+Add `## description` after each public target:
+
+```makefile
+build: $(BINARY)  ## Build the project binary
+test: test.unit   ## Run all tests
+qa: check test    ## Quality gate (MUST PASS before commit)
+```
+
+The `help` target parses annotations with `grep`:
+
+```makefile
+help:  ## Show available targets
+	printf "\033[1;36mProject\033[0m — make targets\n\n"
+	grep -E '^[a-zA-Z_.]+:.*##' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*## "}; {printf "  \033[36m%-22s\033[0m %s\n", $$1, $$2}'
+```
+
+These `##` annotations are NOT code comments — they are **machine-parsed metadata**
+for the help system. They are required on every public target.
 
 ---
 

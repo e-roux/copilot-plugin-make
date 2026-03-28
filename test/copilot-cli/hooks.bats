@@ -13,7 +13,7 @@ SCRIPTS_DIR="$BATS_TEST_DIRNAME/../../copilot-cli/hooks/scripts"
 @test "session-start: outputs policy banner" {
   local input='{"timestamp":1704614400000,"cwd":"/tmp","source":"new"}'
   run bash -c "echo '$input' | '$SCRIPTS_DIR/session-start.sh'"
-  [[ "$output" == *"MAKEFILE POLICY"* ]]
+  [[ "$output" == *"Makefile Policy"* ]]
 }
 
 @test "session-start: banner mentions .SILENT:" {
@@ -337,4 +337,69 @@ SCRIPTS_DIR="$BATS_TEST_DIRNAME/../../copilot-cli/hooks/scripts"
   rm -f "$tmpf"
   [ "$status" -eq 0 ]
   [ -z "$output" ]
+}
+
+# ── pre-tool.sh: full-state validation on edit ────────────────────────────────
+
+@test "pre-tool: denies edit on Makefile missing .ONESHELL: on disk" {
+  local mkf; mkf=$(mktemp -d)/Makefile
+  printf '.SILENT:\n.DEFAULT_GOAL := help\n.PHONY: qa\nqa: test\ntest:\n\techo hi\n' > "$mkf"
+  local toolargs
+  toolargs=$(jq -n --arg path "$mkf" '{"path":$path,"old_str":"echo hi","new_str":"echo hello"}')
+  local input
+  input=$(jq -n --arg ta "$toolargs" '{"toolName":"edit","toolArgs":$ta}')
+  local tmpf; tmpf=$(mktemp)
+  echo "$input" > "$tmpf"
+  run bash -c "'$SCRIPTS_DIR/pre-tool.sh' < '$tmpf'"
+  rm -f "$tmpf" "$mkf"
+  [ "$status" -eq 0 ]
+  decision="$(echo "$output" | jq -r '.permissionDecision')"
+  [ "$decision" = "deny" ]
+  [[ "$output" == *".ONESHELL:"* ]]
+}
+
+@test "pre-tool: allows edit on fully compliant Makefile on disk" {
+  local mkf; mkf=$(mktemp -d)/Makefile
+  printf '.SILENT:\n.ONESHELL:\n.DEFAULT_GOAL := help\n.PHONY: qa\nqa: test\ntest:\n\techo hi\n' > "$mkf"
+  local toolargs
+  toolargs=$(jq -n --arg path "$mkf" '{"path":$path,"old_str":"echo hi","new_str":"echo hello"}')
+  local input
+  input=$(jq -n --arg ta "$toolargs" '{"toolName":"edit","toolArgs":$ta}')
+  local tmpf; tmpf=$(mktemp)
+  echo "$input" > "$tmpf"
+  run bash -c "'$SCRIPTS_DIR/pre-tool.sh' < '$tmpf'"
+  rm -f "$tmpf" "$mkf"
+  [ "$status" -eq 0 ]
+  [ -z "$output" ]
+}
+
+@test "pre-tool: allows edit adding missing directive to non-compliant Makefile" {
+  local mkf; mkf=$(mktemp -d)/Makefile
+  printf '.SILENT:\n.DEFAULT_GOAL := help\n.PHONY: qa\nqa: test\n' > "$mkf"
+  local toolargs
+  toolargs=$(jq -n --arg path "$mkf" '{"path":$path,"old_str":".SILENT:","new_str":".SILENT:\n.ONESHELL:"}')
+  local input
+  input=$(jq -n --arg ta "$toolargs" '{"toolName":"edit","toolArgs":$ta}')
+  local tmpf; tmpf=$(mktemp)
+  echo "$input" > "$tmpf"
+  run bash -c "'$SCRIPTS_DIR/pre-tool.sh' < '$tmpf'"
+  rm -f "$tmpf" "$mkf"
+  [ "$status" -eq 0 ]
+  [ -z "$output" ]
+}
+
+@test "pre-tool: detects .mk include files" {
+  local content
+  content=$(printf '.PHONY: qa\nqa: test\n')
+  local toolargs
+  toolargs=$(jq -n --arg path '/tmp/build.mk' --arg ft "$content" '{"path":$path,"file_text":$ft}')
+  local input
+  input=$(jq -n --arg ta "$toolargs" '{"toolName":"create","toolArgs":$ta}')
+  local tmpf; tmpf=$(mktemp)
+  echo "$input" > "$tmpf"
+  run bash -c "'$SCRIPTS_DIR/pre-tool.sh' < '$tmpf'"
+  rm -f "$tmpf"
+  [ "$status" -eq 0 ]
+  decision="$(echo "$output" | jq -r '.permissionDecision')"
+  [ "$decision" = "deny" ]
 }

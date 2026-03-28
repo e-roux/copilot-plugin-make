@@ -48,6 +48,29 @@ _validate_makefile() {
   fi
 }
 
+# Checks that the file on disk already has required directives before allowing
+# an edit.  If a directive is missing AND the new_str doesn't introduce it,
+# the edit is denied — the agent must fix the non-compliance first.
+_validate_existing_file() {
+  local filepath="$1" new_str="$2"
+
+  [ -f "$filepath" ] || return 0
+  local current
+  current="$(cat "$filepath")"
+
+  if ! echo "$current" | grep -q '^\.SILENT' && ! echo "$new_str" | grep -q '\.SILENT'; then
+    _deny "Makefile at $filepath is missing '.SILENT:' — add this directive before making other edits."
+  fi
+
+  if ! echo "$current" | grep -q '\.ONESHELL' && ! echo "$new_str" | grep -q '\.ONESHELL'; then
+    _deny "Makefile at $filepath is missing '.ONESHELL:' — add this directive before making other edits."
+  fi
+
+  if ! echo "$current" | grep -q '\.DEFAULT_GOAL' && ! echo "$new_str" | grep -q '\.DEFAULT_GOAL'; then
+    _deny "Makefile at $filepath is missing '.DEFAULT_GOAL' — add this directive before making other edits."
+  fi
+}
+
 # ── bash tool ────────────────────────────────────────────────────────────────
 
 if [ "$TOOL_NAME" = "bash" ]; then
@@ -109,13 +132,23 @@ if [ "$TOOL_NAME" = "bash" ]; then
   exit 0
 fi
 
+# Helper: check if filename is a Makefile
+_is_makefile() {
+  local name="$1"
+  case "$name" in
+    Makefile|makefile|GNUmakefile) return 0 ;;
+    *.mk) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
 # ── create tool ───────────────────────────────────────────────────────────────
 
 if [ "$TOOL_NAME" = "create" ]; then
   FILE_PATH="$(echo "$TOOL_ARGS_RAW" | jq -r '.path // empty')"
   FILE_BASE="$(basename "$FILE_PATH")"
 
-  if [ "$FILE_BASE" = "Makefile" ] || [ "$FILE_BASE" = "makefile" ] || [ "$FILE_BASE" = "GNUmakefile" ]; then
+  if _is_makefile "$FILE_BASE"; then
     CONTENT="$(echo "$TOOL_ARGS_RAW" | jq -r '.file_text // empty')"
     _validate_makefile "$CONTENT"
   fi
@@ -129,7 +162,7 @@ if [ "$TOOL_NAME" = "edit" ]; then
   FILE_PATH="$(echo "$TOOL_ARGS_RAW" | jq -r '.path // empty')"
   FILE_BASE="$(basename "$FILE_PATH")"
 
-  if [ "$FILE_BASE" = "Makefile" ] || [ "$FILE_BASE" = "makefile" ] || [ "$FILE_BASE" = "GNUmakefile" ]; then
+  if _is_makefile "$FILE_BASE"; then
     NEW_STR="$(echo "$TOOL_ARGS_RAW" | jq -r '.new_str // empty')"
     OLD_STR="$(echo "$TOOL_ARGS_RAW" | jq -r '.old_str // empty')"
 
@@ -147,6 +180,10 @@ if [ "$TOOL_NAME" = "edit" ]; then
     if echo "$OLD_STR" | grep -q '\.ONESHELL' && ! echo "$NEW_STR" | grep -q '\.ONESHELL'; then
       _deny "Removing '.ONESHELL:' from the Makefile is FORBIDDEN — it is a required directive."
     fi
+
+    # Full-state validation: deny edits to already-non-compliant Makefiles
+    # unless the edit itself adds the missing directive
+    _validate_existing_file "$FILE_PATH" "$NEW_STR"
   fi
 
   exit 0
