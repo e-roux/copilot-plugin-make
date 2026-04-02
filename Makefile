@@ -121,9 +121,9 @@ distclean: clean
 
 help:
 	printf "\033[36m"
-	printf "╔╦╗╔═╗╦╔ ╔═╗\n"
-	printf "║║║╠═╣╠╩╗║╣ \n"
-	printf "╝ ╝╝ ╝╝ ╝╚═╝\n"
+	printf "╔═╗╔═╗╔═╗╔╗╔╔╦╗   ╔═╗╦  ╦ ╦╔═╗ ╦ ╔╗╔   ╔╦╗╔═╗╦╔ ╔═╗╔═╗ ╦ ╦  ╔═╗\n"
+	printf "╠═╣║╠╗║╣ ║║║ ║    ╠═╝║  ║ ║║╠╗ ║ ║║║   ║║║╠═╣╠╩╗║╣ ╠╣  ║ ║  ║╣ \n"
+	printf "╝ ╝╚═╝╚═╝╝╚╝ ╝    ╝  ╩═╝╚═╝╚═╝ ╩ ╝╚╝   ╝ ╝╝ ╝╝ ╝╚═╝╚   ╩ ╩═╝╚═╝\n"
 	printf "\033[0m\n"
 	printf "Usage: make [target]\n\n"
 	printf "\033[1;35mSetup:\033[0m\n"

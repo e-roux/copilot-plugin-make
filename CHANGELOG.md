@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1] - 2026-04-03
+
+### Fixed
+
+- **Makefile (root)**: Corrected `I` glyph in "AGENT PLUGIN MAKEFILE" banner — regenerated with `mcp-banner` tool using the centered serif `I` ( ╦ / ║ / ╩ ).
+- **mcp/letters.json** + **copilot-cli/skill/assets/letters.json**: `I` glyph recentered with ╩ serif bottom (`[" ╦ ", " ║ ", " ╩ "]`) to eliminate 4-space gap before following letters.
+
 ## [0.3.0] - 2026-04-02
 
 ### Added
