@@ -11,9 +11,11 @@ JQ           := jq
 BATS         := bats
 SHELLCHECK   := shellcheck
 BUN          := bun
+GO           := go
 
 COPILOT_DIR  := copilot-cli
 OPENCODE_DIR := opencode
+MCP_DIR      := mcp
 TEST_DIR     := test
 
 HOOKS_SCRIPTS := $(COPILOT_DIR)/hooks/scripts
@@ -26,7 +28,7 @@ VERSION := $(shell $(JQ) -r .version $(OPENCODE_DIR)/package.json 2>/dev/null ||
 #------------------------------------------------------------------------------
 
 .PHONY: help sync fmt lint typecheck check qa clean distclean
-.PHONY: test test.unit copilot-cli.test opencode.test
+.PHONY: test test.unit copilot-cli.test opencode.test mcp.test mcp.build
 .PHONY: version.check publish
 
 #------------------------------------------------------------------------------
@@ -35,7 +37,7 @@ VERSION := $(shell $(JQ) -r .version $(OPENCODE_DIR)/package.json 2>/dev/null ||
 
 check: fmt lint typecheck
 qa: version.check check test
-test: copilot-cli.test opencode.test
+test: copilot-cli.test opencode.test mcp.test
 
 #------------------------------------------------------------------------------
 # Setup
@@ -46,6 +48,7 @@ sync:
 	which $(SHELLCHECK) >/dev/null 2>&1 || brew install shellcheck
 	which $(JQ)         >/dev/null 2>&1 || brew install jq
 	which $(BUN)        >/dev/null 2>&1 || brew install bun
+	which $(GO)         >/dev/null 2>&1 || brew install go
 
 #------------------------------------------------------------------------------
 # Code Quality
@@ -85,6 +88,12 @@ opencode.test:
 	$(BUN) test $(TEST_DIR)/opencode/core.test.ts
 	$(BATS) $(TEST_DIR)/opencode/e2e.bats
 
+mcp.test:
+	cd $(MCP_DIR) && $(GO) test -v -count=1 ./...
+
+mcp.build:
+	cd $(MCP_DIR) && $(GO) build -o ../$(COPILOT_DIR)/bin/mcp-banner .
+
 #------------------------------------------------------------------------------
 # Publish
 #------------------------------------------------------------------------------
@@ -104,7 +113,7 @@ clean:
 	rm -rf $(COPILOT_DIR)/hooks/logs/ .opencode/logs/ .github/hooks/logs/
 
 distclean: clean
-	rm -rf $(OPENCODE_DIR)/node_modules $(OPENCODE_DIR)/dist
+	rm -rf $(OPENCODE_DIR)/node_modules $(OPENCODE_DIR)/dist $(COPILOT_DIR)/bin/
 
 #------------------------------------------------------------------------------
 # Help
@@ -112,16 +121,13 @@ distclean: clean
 
 help:
 	printf "\033[36m"
-	printf "███╗   ███╗ █████╗ ██╗  ██╗███████╗\n"
-	printf "████╗ ████║██╔══██╗██║ ██╔╝██╔════╝\n"
-	printf "██╔████╔██║███████║█████╔╝ █████╗  \n"
-	printf "██║╚██╔╝██║██╔══██║██╔═██╗ ██╔══╝  \n"
-	printf "██║ ╚═╝ ██║██║  ██║██║  ██╗███████╗\n"
-	printf "╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝\n"
+	printf "╔╦╗╔═╗╦╔ ╔═╗\n"
+	printf "║║║╠═╣╠╩╗║╣ \n"
+	printf "╝ ╝╝ ╝╝ ╝╚═╝\n"
 	printf "\033[0m\n"
 	printf "Usage: make [target]\n\n"
 	printf "\033[1;35mSetup:\033[0m\n"
-	printf "  sync              - Install required tools (bats, shellcheck, jq, bun)\n"
+	printf "  sync              - Install required tools (bats, shellcheck, jq, bun, go)\n"
 	printf "\n"
 	printf "\033[1;35mDev:\033[0m\n"
 	printf "  fmt               - Format scripts with shfmt\n"
@@ -136,6 +142,10 @@ help:
 	printf "  test              - Run all tests\n"
 	printf "  copilot-cli.test  - Run copilot-cli hook tests (bats unit + e2e)\n"
 	printf "  opencode.test     - Run opencode plugin tests (bun unit + bats e2e)\n"
+	printf "  mcp.test          - Run mcp-banner Go unit tests\n"
+	printf "\n"
+	printf "\033[1;35mBuild:\033[0m\n"
+	printf "  mcp.build         - Compile mcp-banner binary into copilot-cli/bin/\n"
 	printf "\n"
 	printf "\033[1;35mRelease:\033[0m\n"
 	printf "  publish           - Create GitHub Release for current version (v%s)\n" "$(VERSION)"
