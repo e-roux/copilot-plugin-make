@@ -21,6 +21,16 @@ func TestRenderSingleLetterA(t *testing.T) {
 	}
 }
 
+func TestRenderSingleLetterI(t *testing.T) {
+	// I must be centered (1 space each side) with a serif bottom (╩).
+	// This prevents the visual gap caused by I's trailing spaces combining
+	// with J's leading spaces (old: "║    ║" → new: "║   ║").
+	want := " ╦ \n ║ \n ╩ "
+	if got := render("I"); got != want {
+		t.Errorf("render(I): want %q, got %q", want, got)
+	}
+}
+
 func TestRenderLowercaseEqualsUppercase(t *testing.T) {
 	if render("make") != render("MAKE") {
 		t.Error("lowercase should produce the same output as uppercase")
