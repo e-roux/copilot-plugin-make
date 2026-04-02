@@ -115,7 +115,7 @@ ART_CHARS='[║╗╝╚╔═╠╣╦╩╬]'
 if grep -qP "$ART_CHARS" "$MAKEFILE"; then
     pass "Box-drawing header detected"
 else
-    fail "No box-drawing header found in help target (expected chars: ║╗╝╚╔═ … from assets/letters.json)"
+    fail "No box-drawing header found in help target (generate with: make_banner tool)"
 fi
 
 if grep -qP 'Usage:' "$MAKEFILE"; then
