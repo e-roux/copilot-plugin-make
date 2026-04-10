@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.8.0]
+
+- Add web development best practices resource to makefile skill: CSS custom property hierarchy, component architecture, accessibility baseline, Make targets for web projects, design system integration pattern, web component testing
+
 ## [0.7.0]
 
 - Add `shell` and `testing` skills: migrate from user-level (`~/.copilot/skills/`) into plugin for proper versioning and cohesion; plugin now covers the complete Make-centric dev suite (Makefile + Python + Shell + TDD)

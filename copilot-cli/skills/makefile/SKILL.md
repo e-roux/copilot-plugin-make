@@ -177,3 +177,7 @@ help:
 
 Base template: [assets/Makefile.template](assets/Makefile.template)
 Validator: [assets/validate.sh](assets/validate.sh)
+
+## Resources
+
+Web development: [resources/web.md](resources/web.md) — CSS custom property conventions, component architecture, accessibility baseline, Make targets for web projects, design system integration pattern, and web component testing.
