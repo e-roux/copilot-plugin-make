@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.9.0]
+
+- Ship pre-compiled binaries for all platforms (darwin/arm64, darwin/amd64, linux/amd64, linux/arm64) directly in the repository
+- Replace build-from-source/auto-update wrapper with simple platform-detection wrapper — zero runtime dependencies, instant startup
+- Update integrity tests to validate pre-compiled binaries and wrapper behavior
+
 ## [0.8.2]
 
 - Remove `letters.json` from skill directory — its presence caused agents to build banners letter-by-letter instead of calling the `make_banner` MCP tool
