@@ -86,7 +86,7 @@ version.check:
 #------------------------------------------------------------------------------
 
 copilot-cli.test:
-	$(BATS) $(TEST_DIR)/copilot-cli/hooks.bats $(TEST_DIR)/copilot-cli/hooks_e2e.bats
+	$(BATS) $(TEST_DIR)/copilot-cli/hooks.bats $(TEST_DIR)/copilot-cli/hooks_e2e.bats $(TEST_DIR)/copilot-cli/plugin_integrity.bats
 
 opencode.test:
 	$(BUN) test $(TEST_DIR)/opencode/core.test.ts

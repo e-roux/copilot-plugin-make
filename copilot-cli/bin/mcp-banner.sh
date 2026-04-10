@@ -2,7 +2,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-PLUGIN_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+PLUGIN_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 BINARY="$SCRIPT_DIR/mcp-banner"
 VERSION_FILE="$PLUGIN_DIR/.mcp-version"
 SRC_DIR="$SCRIPT_DIR/../src"
@@ -45,7 +45,7 @@ if [[ ! -x "$BINARY" ]]; then
     exit 1
   fi
   printf "mcp-banner: building from source (first run)...\n" >&2
-  go build -o "$BINARY" "$SRC_DIR"
+  ( cd "$SRC_DIR" && go build -o "$BINARY" . )
 fi
 
 wait

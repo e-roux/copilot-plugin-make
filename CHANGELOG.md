@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.8.1]
+
+- Fix MCP wrapper: PLUGIN_DIR resolved two levels up instead of one, causing version file and fallback build to fail when installed as a plugin
+- Fix MCP wrapper: `go build` fallback now `cd`s to source directory so `go.mod` is found
+- Add plugin integrity test suite (`plugin_integrity.bats`): validates plugin.json, .mcp.json, wrapper paths, MCP server protocol, hooks, and skill structure
+
 ## [0.8.0]
 
 - Add web development best practices resource to makefile skill: CSS custom property hierarchy, component architecture, accessibility baseline, Make targets for web projects, design system integration pattern, web component testing
