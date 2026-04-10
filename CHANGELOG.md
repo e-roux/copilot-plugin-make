@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.8.2]
+
+- Remove `letters.json` from skill directory — its presence caused agents to build banners letter-by-letter instead of calling the `make_banner` MCP tool
+- Strengthen SKILL.md: `make_banner` MCP tool is the ONLY supported method for banner generation; manual assembly is explicitly forbidden
+
 ## [0.8.1]
 
 - Fix MCP wrapper: PLUGIN_DIR resolved two levels up instead of one, causing version file and fallback build to fail when installed as a plugin
