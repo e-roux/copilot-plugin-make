@@ -96,7 +96,12 @@ mcp.test:
 	cd $(MCP_DIR) && $(GO) test -v -count=1 ./...
 
 mcp.build:
-	cd $(MCP_DIR) && $(GO) build -o ../bin/mcp-banner .
+	for platform in $(PLATFORMS); do \
+	  os=$${platform%%/*}; arch=$${platform##*/}; \
+	  printf "Building mcp-banner-%s-%s...\n" "$$os" "$$arch"; \
+	  cd $(MCP_DIR) && GOOS=$$os GOARCH=$$arch $(GO) build -ldflags="-s -w" \
+	    -o ../bin/mcp-banner-$$os-$$arch . && cd ../..; \
+	done
 
 #------------------------------------------------------------------------------
 # Publish
@@ -124,7 +129,7 @@ clean:
 
 distclean: clean
 	rm -rf $(OPENCODE_DIR)/node_modules $(OPENCODE_DIR)/dist
-	rm -f $(COPILOT_DIR)/bin/mcp-banner $(MCP_BIN_DIR)/mcp-banner-*
+	rm -f $(COPILOT_DIR)/bin/mcp-banner
 
 #------------------------------------------------------------------------------
 # Help
@@ -156,7 +161,7 @@ help:
 	printf "  mcp.test          - Run mcp-banner Go unit tests\n"
 	printf "\n"
 	printf "\033[1;35mBuild:\033[0m\n"
-	printf "  mcp.build         - Compile mcp-banner binary into copilot-cli/bin/\n"
+	printf "  mcp.build         - Cross-compile mcp-banner binaries for all platforms\n"
 	printf "\n"
 	printf "\033[1;35mRelease:\033[0m\n"
 	printf "  publish           - Create GitHub Release for current version (v%s)\n" "$(VERSION)"

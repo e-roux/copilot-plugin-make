@@ -31,20 +31,16 @@ WRAPPER="$BIN_DIR/mcp-banner.sh"
   [ -x "$MCP_DIR/$cmd" ]
 }
 
-@test "wrapper script PLUGIN_DIR resolves to one level above bin/" {
-  local plugin_dir
-  plugin_dir=$(bash -c 'SCRIPT_DIR="$(cd "$(dirname "'"$WRAPPER"'")" && pwd)"; cd "$SCRIPT_DIR/.." && pwd')
-  [ "$plugin_dir" = "$(cd "$MCP_DIR" && pwd)" ]
+@test "wrapper script selects platform binary from bin/" {
+  run bash "$WRAPPER" < /dev/null
+  [[ "$status" -eq 0 ]] || [[ "$output" == *"no binary for"* ]]
 }
 
-@test "wrapper SRC_DIR points to directory with go.mod" {
-  local src_dir
-  src_dir=$(bash -c 'SCRIPT_DIR="$(cd "$(dirname "'"$WRAPPER"'")" && pwd)"; echo "$SCRIPT_DIR/../src"')
-  [ -f "$src_dir/go.mod" ]
-}
-
-@test "wrapper SRC_DIR contains main.go" {
-  [ -f "$SRC_DIR/main.go" ]
+@test "pre-compiled binaries exist for all platforms" {
+  for platform in darwin-arm64 darwin-amd64 linux-amd64 linux-arm64; do
+    [ -f "$BIN_DIR/mcp-banner-$platform" ] || { echo "missing: mcp-banner-$platform"; false; }
+    [ -x "$BIN_DIR/mcp-banner-$platform" ] || { echo "not executable: mcp-banner-$platform"; false; }
+  done
 }
 
 @test "Go source compiles successfully" {
@@ -54,13 +50,8 @@ WRAPPER="$BIN_DIR/mcp-banner.sh"
 }
 
 @test "MCP server responds to initialize" {
-  cd "$SRC_DIR"
-  local binary
-  binary=$(mktemp)
-  go build -o "$binary" .
   local resp
-  resp=$(echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}' | "$binary")
-  rm -f "$binary"
+  resp=$(echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}' | "$WRAPPER" 2>/dev/null)
   echo "$resp" | jq -e '.result.serverInfo.name' >/dev/null
   local name
   name=$(echo "$resp" | jq -r '.result.serverInfo.name')
@@ -68,26 +59,16 @@ WRAPPER="$BIN_DIR/mcp-banner.sh"
 }
 
 @test "MCP server lists make_banner tool" {
-  cd "$SRC_DIR"
-  local binary
-  binary=$(mktemp)
-  go build -o "$binary" .
   local resp
-  resp=$(echo '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}' | "$binary")
-  rm -f "$binary"
+  resp=$(echo '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}' | "$WRAPPER" 2>/dev/null)
   local tool_name
   tool_name=$(echo "$resp" | jq -r '.result.tools[0].name')
   [ "$tool_name" = "make_banner" ]
 }
 
 @test "MCP server renders banner via tools/call" {
-  cd "$SRC_DIR"
-  local binary
-  binary=$(mktemp)
-  go build -o "$binary" .
   local resp
-  resp=$(echo '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"make_banner","arguments":{"text":"TEST"}}}' | "$binary")
-  rm -f "$binary"
+  resp=$(echo '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"make_banner","arguments":{"text":"TEST"}}}' | "$WRAPPER" 2>/dev/null)
   echo "$resp" | jq -e '.result.content[0].text' >/dev/null
   local text
   text=$(echo "$resp" | jq -r '.result.content[0].text')
