@@ -1,13 +1,6 @@
-# Audit logs (written by hook scripts and opencode plugin, never committed)
-copilot-cli/hooks/logs/
-.github/hooks/logs/
-.opencode/logs/
+# Audit logs (never committed)
+hooks/logs/
 
-# Node/Bun artifacts (opencode package)
-opencode/node_modules/
-opencode/dist/
-opencode/bun.lock
-
-# Go build artifacts (compiled binary, not the wrapper script)
-copilot-cli/bin/mcp-banner
+# Go build artifact (compiled local binary, not the pre-compiled platform binaries)
+bin/mcp-banner
 .mcp-version

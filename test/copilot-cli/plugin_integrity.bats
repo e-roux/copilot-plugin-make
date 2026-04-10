@@ -1,34 +1,31 @@
 #!/usr/bin/env bats
 
-MCP_DIR="$BATS_TEST_DIRNAME/../../copilot-cli"
-BIN_DIR="$MCP_DIR/bin"
-SRC_DIR="$MCP_DIR/src"
+PLUGIN_DIR="$BATS_TEST_DIRNAME/../.."
+BIN_DIR="$PLUGIN_DIR/bin"
+SRC_DIR="$PLUGIN_DIR/src"
 WRAPPER="$BIN_DIR/mcp-banner.sh"
 
 @test "plugin.json exists and has required fields" {
-  [ -f "$MCP_DIR/plugin.json" ]
-  jq -e '.name' "$MCP_DIR/plugin.json" >/dev/null
-  jq -e '.version' "$MCP_DIR/plugin.json" >/dev/null
-  jq -e '.skills' "$MCP_DIR/plugin.json" >/dev/null
+  [ -f "$PLUGIN_DIR/plugin.json" ]
+  jq -e '.name' "$PLUGIN_DIR/plugin.json" >/dev/null
+  jq -e '.version' "$PLUGIN_DIR/plugin.json" >/dev/null
+  jq -e '.skills' "$PLUGIN_DIR/plugin.json" >/dev/null
 }
 
-@test "plugin.json version matches package.json" {
-  local pj_ver oc_ver
-  pj_ver=$(jq -r '.version' "$MCP_DIR/plugin.json")
-  oc_ver=$(jq -r '.version' "$BATS_TEST_DIRNAME/../../opencode/package.json" 2>/dev/null || echo "$pj_ver")
-  [ "$pj_ver" = "$oc_ver" ]
+@test "plugin.json has single version source of truth" {
+  jq -e '.version' "$PLUGIN_DIR/plugin.json" >/dev/null
 }
 
 @test ".mcp.json exists and references mcp-banner" {
-  [ -f "$MCP_DIR/.mcp.json" ]
-  jq -e '.mcpServers["mcp-banner"]' "$MCP_DIR/.mcp.json" >/dev/null
+  [ -f "$PLUGIN_DIR/.mcp.json" ]
+  jq -e '.mcpServers["mcp-banner"]' "$PLUGIN_DIR/.mcp.json" >/dev/null
 }
 
 @test ".mcp.json command points to existing wrapper" {
   local cmd
-  cmd=$(jq -r '.mcpServers["mcp-banner"].command' "$MCP_DIR/.mcp.json")
-  [ -f "$MCP_DIR/$cmd" ]
-  [ -x "$MCP_DIR/$cmd" ]
+  cmd=$(jq -r '.mcpServers["mcp-banner"].command' "$PLUGIN_DIR/.mcp.json")
+  [ -f "$PLUGIN_DIR/$cmd" ]
+  [ -x "$PLUGIN_DIR/$cmd" ]
 }
 
 @test "wrapper script selects platform binary from bin/" {
@@ -76,23 +73,23 @@ WRAPPER="$BIN_DIR/mcp-banner.sh"
 }
 
 @test "hooks policy.json is valid" {
-  [ -f "$MCP_DIR/hooks/policy.json" ]
-  jq -e '.version' "$MCP_DIR/hooks/policy.json" >/dev/null
-  jq -e '.hooks' "$MCP_DIR/hooks/policy.json" >/dev/null
+  [ -f "$PLUGIN_DIR/hooks/policy.json" ]
+  jq -e '.version' "$PLUGIN_DIR/hooks/policy.json" >/dev/null
+  jq -e '.hooks' "$PLUGIN_DIR/hooks/policy.json" >/dev/null
 }
 
 @test "all hook scripts referenced in policy.json exist and are executable" {
-  local hooks_file="$MCP_DIR/hooks/policy.json"
+  local hooks_file="$PLUGIN_DIR/hooks/policy.json"
   [ -f "$hooks_file" ] || skip "no policy.json"
   for script in $(jq -r '.. | .bash? // empty' "$hooks_file"); do
-    local full_path="$MCP_DIR/$script"
+    local full_path="$PLUGIN_DIR/$script"
     [ -f "$full_path" ] || { echo "missing: $full_path"; false; }
     [ -x "$full_path" ] || { echo "not executable: $full_path"; false; }
   done
 }
 
 @test "skill directories contain SKILL.md" {
-  local skills_dir="$MCP_DIR/skills"
+  local skills_dir="$PLUGIN_DIR/skills"
   [ -d "$skills_dir" ] || skip "no skills dir"
   for dir in "$skills_dir"/*/; do
     [ -d "$dir" ] || continue
@@ -101,7 +98,7 @@ WRAPPER="$BIN_DIR/mcp-banner.sh"
 }
 
 @test "agent files have required frontmatter" {
-  local agents_dir="$MCP_DIR/agents"
+  local agents_dir="$PLUGIN_DIR/agents"
   [ -d "$agents_dir" ] || skip "no agents dir"
   for f in "$agents_dir"/*.agent.md; do
     [ -f "$f" ] || continue
