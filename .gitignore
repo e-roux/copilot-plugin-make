@@ -10,3 +10,5 @@ opencode/bun.lock
 
 # Go build artifacts (compiled binary, not the wrapper script)
 copilot-cli/bin/mcp-banner
+copilot-cli/bin/mcp-banner-*
+.mcp-version

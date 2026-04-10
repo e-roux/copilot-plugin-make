@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.0]
+
+- Add cross-compile binary assets to `publish` target: darwin/arm64, darwin/amd64, linux/amd64, linux/arm64
+- Add auto-update logic to `mcp-banner.sh` wrapper: checks GitHub Releases hourly for newer binaries, falls back to build-from-source
+
 ## [0.5.1]
 
 - Bump Copilot CLI version to 1.0.22; no content changes

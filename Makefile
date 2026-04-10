@@ -16,9 +16,13 @@ GO           := go
 COPILOT_DIR  := copilot-cli
 OPENCODE_DIR := opencode
 MCP_DIR      := copilot-cli/src
+MCP_BIN_DIR  := copilot-cli/bin
 TEST_DIR     := test
 
 HOOKS_SCRIPTS := $(COPILOT_DIR)/hooks/scripts
+
+PLATFORMS := darwin/arm64 darwin/amd64 linux/amd64 linux/arm64
+REPO      := e-roux/agent-plugin-make
 
 # Version source of truth: opencode/package.json
 VERSION := $(shell $(JQ) -r .version $(OPENCODE_DIR)/package.json 2>/dev/null || echo "unknown")
@@ -99,7 +103,13 @@ mcp.build:
 #------------------------------------------------------------------------------
 
 publish: version.check
-	gh release create "v$(VERSION)" \
+	for platform in $(PLATFORMS); do \
+	  os=$${platform%%/*}; arch=$${platform##*/}; \
+	  printf "Building mcp-banner-%s-%s...\n" "$$os" "$$arch"; \
+	  cd $(MCP_DIR) && GOOS=$$os GOARCH=$$arch $(GO) build -ldflags="-s -w" \
+	    -o ../bin/mcp-banner-$$os-$$arch . && cd ../..; \
+	done
+	gh release create "v$(VERSION)" $(MCP_BIN_DIR)/mcp-banner-* \
 	  --title "v$(VERSION)" \
 	  --notes-file CHANGELOG.md \
 	  --latest
@@ -114,7 +124,7 @@ clean:
 
 distclean: clean
 	rm -rf $(OPENCODE_DIR)/node_modules $(OPENCODE_DIR)/dist
-	rm -f $(COPILOT_DIR)/bin/mcp-banner
+	rm -f $(COPILOT_DIR)/bin/mcp-banner $(MCP_BIN_DIR)/mcp-banner-*
 
 #------------------------------------------------------------------------------
 # Help
