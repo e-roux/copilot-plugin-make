@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.11.1]
+
+- Bump Copilot CLI version to 1.0.24; no content changes
+
 ## [0.11.0]
 
 - Migrate `mcp-banner` Go MCP server to a pure bash skill (`skills/banner/banner.sh`)
