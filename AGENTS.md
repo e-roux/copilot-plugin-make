@@ -57,6 +57,7 @@ E2E tests must:
 - Pass `--disable-builtin-mcps`, `--no-ask-user`, and `--allow-all-tools` for non-interactive execution.
 - Pass the prompt via `-p <PROMPT>`.
 - Evaluate the outcome from audit logs (`pre-tool-denied.log`, `session-start.log`) and the CLI response.
+- Use `/env` to verify loaded skills, hooks, and plugin registration during interactive debugging.
 
 ### OpenCode plugin (`opencode/`)
 

@@ -29,7 +29,7 @@ You ARE NOT ALLOWED to run direct commands:
 pytest / ruff format / ruff check / go test / go build / eslint / jest / bun test / black
 ```
 
-> **Hook enforcement**: Direct invocations of the above tools are **denied** by the plugin's `preToolUse` hook. Always use `make <target>`.
+> **Hook enforcement**: Direct invocations of the above tools are **auto-redirected** to the corresponding `make` target by the plugin's `preToolUse` hook. The agent learns the pattern through `additionalContext` that persists across turns (CLI ≥1.0.25).
 
 ---
 
