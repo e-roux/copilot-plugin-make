@@ -4,6 +4,13 @@
 
 - feat: redirect biome format/lint/check, vitest, tsc, svelte-check to make targets
 
+## [0.11.3]
+
+- Bump Copilot CLI version to 1.0.25
+- Update makefile skill: document auto-redirect behavior and skill instruction persistence across turns (CLI 1.0.25)
+- Update python skill: clarify that mypy is auto-redirected (not denied) while python/pip/virtualenv remain denied
+- Update AGENTS.md: add `/env` command for interactive debugging of plugin loading in E2E tests
+
 ## [0.11.2]
 
 - Transform direct-tool-call enforcement from deny to auto-redirect via `modifiedArgs` (CLI v1.0.24): `pytest`→`make test`, `ruff`→`make lint/fmt`, `go test`→`make test`, `go build`→`make build`, `golangci-lint`/`eslint`→`make lint`, `jest`/`bun test`→`make test`, `black`→`make fmt`, `mypy`→`make typecheck`; agent learns the pattern through `additionalContext`

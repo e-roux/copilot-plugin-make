@@ -60,7 +60,7 @@ Tests are THE BASIS FOR IMPLEMENTATION. Write tests FIRST, verify they fail, the
 | `zmypy` | `uv run zmypy src/` | Type checking via **zuban** (mypy-compatible, 20-200× faster, Rust) |
 | `pytest` | `uv run pytest` | Testing |
 
-> **Hook enforcement**: Direct `python`, `pip`, `virtualenv`, and `mypy` calls are **denied** by the plugin's `preToolUse` hook. Always use `uv run zmypy` for type checking, never bare `mypy`.
+> **Hook enforcement**: Direct `python`, `pip`, `virtualenv` calls are **denied** by the plugin's `preToolUse` hook. Direct `mypy` calls are **auto-redirected** to `make typecheck`. Always use `uv run zmypy` for type checking, never bare `mypy`.
 
 ### Configuration
 
